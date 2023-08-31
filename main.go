@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -13,13 +12,14 @@ import (
 
 const uri = "mongodb://localhost:27017"
 
+type Todolist struct {
+	ID       primitive.ObjectID `bson:"_id"`
+	Name     string             `bson:"name"`
+	Todolist interface{}        `bson:"todolist"`
+}
+
 var serverAPI = options.ServerAPI(options.ServerAPIVersion1)
 var opts = options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
-
-type todolist struct {
-	name     string
-	todolist []string
-}
 
 func init() {
 	client, err := mongo.Connect(context.TODO(), opts)
@@ -71,21 +71,15 @@ func listAll() {
 		panic(err)
 	}
 	var results = make([]interface{}, 0)
-	type Todo struct {
-		ID       primitive.ObjectID `bson:"_id"`
-		Name     interface{}        `bson:"name"`
-		Todolist interface{}        `bson:"todolist"`
-	}
 	cursor.All(context.TODO(), &results)
-	var t Todo
-	for _, result := range results {
-		fmt.Println(reflect.TypeOf(result))
-		fmt.Println(result)
+	var t Todolist
+	fmt.Println("\nPrinting all todolists:")
+	for r, result := range results {
 		bsonBytes, _ := bson.Marshal(result)
 		bson.Unmarshal(bsonBytes, &t)
-		fmt.Println(t)
-
+		fmt.Printf("%v %v\n", r+1, t.Name)
 	}
+	fmt.Println("\n")
 }
 
 func main() {
