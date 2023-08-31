@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -13,9 +15,8 @@ import (
 const uri = "mongodb://localhost:27017"
 
 type Todolist struct {
-	ID       primitive.ObjectID `bson:"_id"`
-	Name     string             `bson:"name"`
-	Todolist interface{}        `bson:"todolist"`
+	Name     string      `bson:"name"`
+	Todolist interface{} `bson:"todolist"`
 }
 
 var serverAPI = options.ServerAPI(options.ServerAPIVersion1)
@@ -77,9 +78,40 @@ func listAll() {
 	for r, result := range results {
 		bsonBytes, _ := bson.Marshal(result)
 		bson.Unmarshal(bsonBytes, &t)
+		fmt.Println(result)
+		fmt.Println(t)
 		fmt.Printf("%v %v\n", r+1, t.Name)
 	}
-	fmt.Println("\n")
+	fmt.Println("")
+}
+
+func createtodolist() {
+	fmt.Println("What would you like to name your todolist?")
+	var name string
+	fmt.Scanln(&name)
+	fmt.Println("Please input the entries of your todolist")
+	cont := true
+	var input string
+	entries := make([]string, 0)
+	count := 1
+	for cont {
+		fmt.Print(count, "\t")
+		reader := bufio.NewReader(os.Stdin)
+		sentence, _ := reader.ReadString('\n')
+		entries = append(entries, sentence)
+		fmt.Println("Would you like to add more entries? (yes/y)")
+		fmt.Scanln(&input)
+		if strings.EqualFold(input, "yes") || strings.EqualFold(input, "y") {
+			count++
+			continue
+		} else {
+			cont = false
+		}
+	}
+	fmt.Println("Name of todolist:", name)
+	fmt.Println("Entries of your todolist:")
+	fmt.Println(entries)
+
 }
 
 func main() {
@@ -98,5 +130,7 @@ func main() {
 	switch option {
 	case 1:
 		listAll()
+	case 2:
+		createtodolist()
 	}
 }
